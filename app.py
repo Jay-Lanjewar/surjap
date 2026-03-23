@@ -64,7 +64,7 @@ def get_recommendation(energy, valence, social, answer_summary):
     try:
         client = genai.Client(api_key=api_key)
  
-        prompt = f"""You are a music psychologist and expert recommender. A user answered 8 mood questions.
+        prompt = f"""You are a music psychologist and expert recommender specializing in Indian music. A user answered 8 mood questions.
  
 Their answers:
 {answer_summary}
@@ -93,9 +93,13 @@ Return ONLY a valid JSON object with no extra text, no markdown, no backticks:
 }}
  
 Rules:
-- Songs must be real, well-known tracks that exist on YouTube
-- Match the mood axes precisely
-- Be specific, not generic
+- ALL songs must be Indian — Bollywood, Hindi indie, Punjabi pop, or regional Indian music only. No western/international songs.
+- Pick songs that are popular and well known in India, that a typical Indian teenager or young adult would recognise and love.
+- Examples of good artists: Arijit Singh, Pritam, AP Dhillon, Diljit Dosanjh, Nucleya, When Chai Met Toast, The Local Train, Prateek Kuhad, Ritviz, Anuv Jain, Darshan Raval, B Praak, Jubin Nautiyal, Shreya Ghoshal, Tanishka bahl.
+- Match the mood axes precisely — don't recommend upbeat songs for low valence scores.
+- Songs must actually exist on YouTube.
+- Genres should also be Indian — e.g. Bollywood, Hindi Indie, Punjabi Pop, Sufi, Lo-fi Hindi, etc.
+- Be specific, not generic.
 """
  
         response = client.models.generate_content(

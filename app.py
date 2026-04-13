@@ -290,12 +290,20 @@ else:
  
     st.markdown(f"""
     <div class="mood-card">
-        <div style="font-size: 3rem;">{profile.get('emoji','🎵')}</div>
-        <div class="mood-name">{profile.get('mood_name','Your Mood')}</div>
-        <p style="color: #aaa; margin-top: 0.5rem;">{profile.get('description','')}</p>
-        <p class="vibe-text">"{profile.get('vibe','')}"</p>
-    </div>
-    """, unsafe_allow_html=True)
+    <div style="font-size: 3rem;">{profile.get('emoji','🎵')}</div>
+    <div class="mood-name">{profile.get('mood_name','Your Mood')}</div>
+
+    <p style="color: #aaa; margin-top: 0.5rem;">
+        {profile.get('description','')}
+    </p>
+
+    <p style="color: #888; font-size: 0.9rem; margin-top: 0.4rem;">
+    💡 {profile.get('reason','')}
+    </p>
+
+    <p class="vibe-text">"{profile.get('vibe','')}"</p>
+</div>
+""", unsafe_allow_html=True)
  
     genres = profile.get("genres", [])
     if genres:

@@ -141,10 +141,16 @@ Rules:
 - Be specific, not generic.
 """
  
-        response = client.models.generate_content(
-            model="gemini-2.5-flash",
-            contents=prompt,
-        )
+        try:
+    response = client.models.generate_content(
+        model="gemini-2.5-flash",
+        contents=prompt,
+    )
+except Exception:
+    response = client.models.generate_content(
+        model="gemini-1.5-flash",
+        contents=prompt,
+    )
  
         raw = response.text.strip()
         if raw.startswith("```"):
@@ -155,7 +161,10 @@ Rules:
         return data, None
  
     except Exception as e:
-        return None, f"Error from Gemini: {str(e)}"
+        if "503" in str(e):
+    return None, "Server is busy right now. Please try again in a bit."
+else:
+    return None, f"Error: {str(e)}"
  
  
 def init_state():

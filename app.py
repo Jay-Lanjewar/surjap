@@ -297,21 +297,28 @@ else:
     profile = st.session_state.result
     energy, valence, social = st.session_state.scores
 
-	emoji = profile.get('emoji', '🎵')
-	mood_name = profile.get('mood_name', 'Your Mood')
-	desc = profile.get('description', '')
-	reason = profile.get('reason','')
-	vibe = profile.get('vibe', '')
+    emoji = profile.get('emoji', '🎵')
+    mood_name = profile.get('mood_name', 'Your Mood')
+    desc = profile.get('description', '')
+    reason = profile.get('reason', '')
+    vibe = profile.get('vibe', '')
 
     st.markdown(f"""
-<div class="mood-card">
-    <div style="font-size: 3rem;">{emoji}</div>
-    <div class="mood-name">{mood_name}</div>
-    <p style="color: #aaa; margin-top: 0.5rem;">{desc}</p>
-    <p style="color: #888; font-size: 0.9rem; margin-top: 0.4rem;">💡 {reason}</p>
-    <p class="vibe-text">"{vibe}"</p>
-</div>
-""", unsafe_allow_html=True)
+    <div class="mood-card">
+        <div style="font-size: 3rem;">{emoji}</div>
+        <div class="mood-name">{mood_name}</div>
+
+        <p style="color: #aaa; margin-top: 0.5rem;">
+            {desc}
+        </p>
+
+        <p style="color: #888; font-size: 0.9rem; margin-top: 0.4rem;">
+            💡 {reason}
+        </p>
+
+        <p class="vibe-text">"{vibe}"</p>
+    </div>
+    """, unsafe_allow_html=True)
 
     genres = profile.get("genres", [])
     if genres:

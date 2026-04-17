@@ -141,11 +141,9 @@ Rules:
 - Be specific, not generic.
 """
 
-        response = client.models.generate_content(
-            model="gemini-2.5-flash",
-            contents=prompt,
-        )
-
+        client = genai.Client(api_key=api_key)
+        model = client.GenerativeModel("gemini-1.5-flash")
+        response = model.generate_content(prompt)
         raw = response.text.strip()
 
         if raw.startswith("```"):

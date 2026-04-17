@@ -151,7 +151,7 @@ Rules:
                 model="gemini-1.5-flash",
                 contents=prompt,
             )
-			
+            
         raw = response.text.strip()
         if raw.startswith("```"):
             raw = raw.split("```")[1]

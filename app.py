@@ -1,18 +1,19 @@
+import html
 import json
 import os
 import streamlit as st
 from google import genai
 from dotenv import load_dotenv
 from mood_engine import questions, calculate_scores, build_answer_summary
-
+ 
 load_dotenv()
-
+ 
 st.set_page_config(
     page_title="Jyani — Music for Your Moment",
     page_icon="🎵",
     layout="centered",
 )
-
+ 
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:wght@300;400;500&display=swap');
@@ -47,15 +48,15 @@ div[data-testid="stRadio"] label:hover { border-color: #555; color: #fff; }
 .stButton > button:hover { opacity: 0.85; }
 </style>
 """, unsafe_allow_html=True)
-
-
+ 
+ 
 def get_gemini_key():
     try:
         return st.secrets["GEMINI_API_KEY"]
     except Exception:
         return os.getenv("GEMINI_API_KEY", "")
-
-
+ 
+ 
 def get_recommendation(
     energy,
     valence,
@@ -69,30 +70,30 @@ def get_recommendation(
     api_key = get_gemini_key()
     if not api_key:
         return None, "No API key found. Add GEMINI_API_KEY to your .env file."
-
+ 
     try:
         client = genai.Client(api_key=api_key)
-
+ 
         prompt = f"""You are a music psychologist and expert recommender specializing in Indian music. A user answered 11 mood questions.
-
+ 
 Their answers:
 {answer_summary}
-
+ 
 Mood scores (scale roughly -16 to +16):
 - Energy: {energy} (negative = low energy, positive = high energy)
 - Valence: {valence} (negative = sad/tense, positive = happy/content)
 - Social: {social} (negative = wants to be alone, positive = wants connection)
-
+ 
 User Preferences:
 - Familiarity: {user_pref}
 - Era: {era_pref}
 - Language: {lang_pref}
-
+ 
 Reference Songs:
 {reference_songs}
-
+ 
 Return ONLY a valid JSON object with no extra text, no markdown, no backticks:
-
+ 
 {{
   "mood_name": "2-3 word evocative mood name",
   "emoji": "one fitting emoji",
@@ -109,7 +110,7 @@ Return ONLY a valid JSON object with no extra text, no markdown, no backticks:
     {{"title": "Song Name", "artist": "Artist Name"}}
   ]
 }}
-
+ 
 Rules:
 - Add a "reason" field explaining why these songs match the user's mood.
 - The FIRST song must be highly recognizable, emotionally strong, and likely familiar to the user.
@@ -140,29 +141,28 @@ Rules:
 - Genres should reflect the actual recommendation mix — e.g. Bollywood, Hindi Indie, Marathi Bhavgeet, Soft Rock, English Pop, Sufi, Lo-fi Hindi, etc.
 - Be specific, not generic.
 """
-
-        client = genai.Client(api_key=api_key)
-        model = client.GenerativeModel("gemini-1.5-flash")
-        response = model.generate_content(prompt)
+ 
+        response = client.models.generate_content(
+            model="gemini-1.5-flash",
+            contents=prompt,
+        )
         raw = response.text.strip()
-
+ 
         if raw.startswith("```"):
             raw = raw.split("```")[1]
             if raw.startswith("json"):
                 raw = raw[4:]
-
+ 
         data = json.loads(raw.strip())
         return data, None
-
+ 
     except Exception as e:
-        #  DEBUG MODE — SHOW REAL ERROR
         error_text = str(e)
-
-        # If API fails → fallback result (IMPORTANT)
+ 
         fallback = {
             "mood_name": "Safe Mode",
             "emoji": "🎧",
-            "description": "Something went wrong, but here’s a fallback vibe for you.",
+            "description": "Something went wrong, but here's a fallback vibe for you.",
             "vibe": "Even silence has rhythm.",
             "reason": "Fallback due to API issue",
             "genres": ["Bollywood", "Soft"],
@@ -172,10 +172,10 @@ Rules:
                 {"title": "Kasoor", "artist": "Prateek Kuhad"},
             ],
         }
-
+ 
         return fallback, f"DEBUG: {error_text}"
-
-
+ 
+ 
 def init_state():
     if "step" not in st.session_state:
         st.session_state.step = 0
@@ -197,8 +197,8 @@ def init_state():
         st.session_state.reference_songs = ""
     if "feedback" not in st.session_state:
         st.session_state.feedback = None
-
-
+ 
+ 
 def reset():
     st.session_state.step = 0
     st.session_state.answers = {}
@@ -210,8 +210,8 @@ def reset():
     st.session_state.lang_pref = None
     st.session_state.reference_songs = ""
     st.session_state.feedback = None
-
-
+ 
+ 
 def fetch_recommendation():
     energy, valence, social = calculate_scores(st.session_state.answers)
     summary = build_answer_summary(st.session_state.answers)
@@ -236,24 +236,24 @@ def fetch_recommendation():
     else:
         st.session_state.result = data
         st.session_state.feedback = None
-
-
+ 
+ 
 init_state()
-
+ 
 st.markdown('<p class="main-title">Jyani 🎵</p>', unsafe_allow_html=True)
 st.markdown('<p class="subtitle">Answer 11 questions. Get music that fits your moment.</p>', unsafe_allow_html=True)
-
+ 
 total = len(questions)
-
+ 
 if st.session_state.result is None and st.session_state.error is None:
     step = st.session_state.step
-
+ 
     if step < total:
         q = questions[step]
         st.markdown(f'<p class="progress-text">Question {step + 1} of {total}</p>', unsafe_allow_html=True)
         st.progress(step / total)
         st.markdown(f'<p class="question-text">{q["text"]}</p>', unsafe_allow_html=True)
-
+ 
         option_labels = [opt["label"] for opt in q["options"]]
         choice = st.radio("Choose one option", option_labels, key=f"radio_{q['id']}", label_visibility="collapsed")
         if step == total - 1:
@@ -262,7 +262,7 @@ if st.session_state.result is None and st.session_state.error is None:
                 key="reference_songs",
                 placeholder="Example: Lag Jaa Gale, Iktara, Kasoor",
             )
-
+ 
         col1, col2 = st.columns([3, 1])
         with col1:
             btn_label = "Next →" if step < total - 1 else "See My Music 🎵"
@@ -295,46 +295,46 @@ if st.session_state.result is None and st.session_state.error is None:
                     if questions[step]["id"] == "q11":
                         st.session_state.lang_pref = None
                     st.rerun()
-
+ 
 elif st.session_state.error:
     st.error(st.session_state.error)
     if st.button("Try Again"):
         reset()
         st.rerun()
-
+ 
 else:
     profile = st.session_state.result
     energy, valence, social = st.session_state.scores
-
+ 
     emoji = profile.get('emoji', '🎵')
     mood_name = profile.get('mood_name', 'Your Mood')
     desc = profile.get('description', '')
     reason = profile.get('reason', '')
     vibe = profile.get('vibe', '')
-
+ 
     st.markdown(f"""
     <div class="mood-card">
         <div style="font-size: 3rem;">{emoji}</div>
         <div class="mood-name">{mood_name}</div>
-
+ 
         <p style="color: #aaa; margin-top: 0.5rem;">
             {desc}
         </p>
-
+ 
         <p style="color: #888; font-size: 0.9rem; margin-top: 0.4rem;">
             💡 {reason}
         </p>
-
+ 
         <p class="vibe-text">"{vibe}"</p>
     </div>
     """, unsafe_allow_html=True)
-
+ 
     genres = profile.get("genres", [])
     if genres:
         st.markdown("#### 🎧 Genres for you")
         genres_html = " ".join([f'<span class="tag">{html.escape(g)}</span>' for g in genres])
         st.markdown(genres_html, unsafe_allow_html=True)
-
+ 
     songs = profile.get("songs", [])
     if songs:
         st.markdown("#### 🎵 Songs to listen to right now")
@@ -353,7 +353,7 @@ else:
                 f'</div></a>',
                 unsafe_allow_html=True,
             )
-
+ 
     with st.expander("See your mood scores"):
         e_bar = (energy + 16) / 32
         v_bar = (valence + 16) / 32
@@ -361,7 +361,7 @@ else:
         st.write(f"**Energy** {'▓' * int(e_bar * 10)}{'░' * (10 - int(e_bar * 10))} ({energy:+d})")
         st.write(f"**Valence** {'▓' * int(v_bar * 10)}{'░' * (10 - int(v_bar * 10))} ({valence:+d})")
         st.write(f"**Social** {'▓' * int(s_bar * 10)}{'░' * (10 - int(s_bar * 10))} ({social:+d})")
-
+ 
     feedback_col1, feedback_col2, feedback_col3 = st.columns(3)
     with feedback_col1:
         if st.button("👍 Matched my vibe"):
@@ -375,16 +375,16 @@ else:
         if st.button("👎 Not really"):
             st.session_state.feedback = "Let's refine it."
             st.rerun()
-
+ 
     if st.session_state.feedback:
         st.caption(st.session_state.feedback)
-
+ 
     st.markdown("<br>", unsafe_allow_html=True)
     if st.button("🔁 Try Different Songs"):
         with st.spinner("Finding a different set for the same mood..."):
             fetch_recommendation()
         st.rerun()
-
+ 
     if st.button("🔄 Try Again"):
         reset()
         st.rerun()

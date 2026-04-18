@@ -8,8 +8,15 @@ from mood_engine import questions, calculate_scores, build_answer_summary
 import re
 
 def clean_text(text):
-    return re.sub(r"<.*?>", "", text)
- 
+    if not text:
+        return ""
+    text = re.sub(r"<[^>]+>", "", text)  # remove all HTML tags
+    return text.strip()
+
+for key in ["description", "reason", "vibe"]:
+    if key in data:
+        data[key] = clean_text(data[key])
+
 load_dotenv()
  
 st.set_page_config(

@@ -5,6 +5,10 @@ import streamlit as st
 from google import genai
 from dotenv import load_dotenv
 from mood_engine import questions, calculate_scores, build_answer_summary
+import re
+
+def clean_text(text):
+    return re.sub(r"<.*?>", "", text)
  
 load_dotenv()
  
@@ -319,9 +323,9 @@ else:
  
     emoji = profile.get('emoji', '🎵')
     mood_name = profile.get('mood_name', 'Your Mood')
-    desc = profile.get('description', '')
-    reason = profile.get('reason', '')
-    vibe = profile.get('vibe', '')
+    desc = clean_text(profile.get('description', ''))
+    reason = clean_text(profile.get('reason', ''))
+    vibe = clean_text(profile.get('vibe', ''))
  
     st.markdown(f"""
     <div class="mood-card">

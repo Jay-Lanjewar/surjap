@@ -15,8 +15,8 @@ def clean_text(text):
     data = json.loads(raw.strip())
 
     for key in ["description", "reason", "vibe"]:
-    if key in data:
-        data[key] = clean_text(data[key])
+        if key in data:
+            data[key] = clean_text(data[key])
 
     return data, None
 

@@ -1,3 +1,4 @@
+import textwrap
 import html
 import json
 import os
@@ -328,36 +329,33 @@ elif st.session_state.error:
 else:
     profile = st.session_state.result
     energy, valence, social = st.session_state.scores
- 
+
     emoji = profile.get('emoji', '🎵')
     mood_name = profile.get('mood_name', 'Your Mood')
     desc = clean_text(str(profile.get('description', '')))
     reason = clean_text(str(profile.get('reason', '')))
     vibe = clean_text(str(profile.get('vibe', '')))
- 
-    st.markdown(f"""
-    <div class="mood-card">
-        <div style="font-size: 3rem;">{emoji}</div>
-        <div class="mood-name">{mood_name}</div>
- 
-        <p style="color: #aaa; margin-top: 0.5rem;">
-            {desc}
-        </p>
- 
-        <p style="color: #888; font-size: 0.9rem; margin-top: 0.4rem;">
-            💡 {reason}
-        </p>
- 
-        <p class="vibe-text">"{vibe}"</p>
-    </div>
-    """, unsafe_allow_html=True)
- 
+
+    # ✅ Use dedent here to fix the "raw text" issue
+    mood_html = textwrap.dedent(f"""
+        <div class="mood-card">
+            <div style="font-size: 3rem;">{emoji}</div>
+            <div class="mood-name">{mood_name}</div>
+            <p style="color: #aaa; margin-top: 0.5rem;">{desc}</p>
+            <p style="color: #888; font-size: 0.9rem; margin-top: 0.4rem;">
+                💡 {reason}
+            </p>
+            <p class="vibe-text">"{vibe}"</p>
+        </div>
+    """)
+    st.markdown(mood_html, unsafe_allow_html=True)
+
     genres = profile.get("genres", [])
     if genres:
         st.markdown("#### 🎧 Genres for you")
         genres_html = " ".join([f'<span class="tag">{html.escape(g)}</span>' for g in genres])
         st.markdown(genres_html, unsafe_allow_html=True)
- 
+
     songs = profile.get("songs", [])
     if songs:
         st.markdown("#### 🎵 Songs to listen to right now")
@@ -366,17 +364,20 @@ else:
             artist = song.get("artist", "")
             query = f"{title} {artist}".replace(" ", "+")
             yt_url = f"https://www.youtube.com/results?search_query={query}"
-            st.markdown(
+            
+            # Using implicit concatenation (no triple quotes) usually avoids the indent bug
+            song_html = (
                 f'<a href="{yt_url}" target="_blank" style="text-decoration:none;">'
                 f'<div style="background:#1a1a1a;border:1px solid #2a2a2a;border-radius:10px;'
                 f'padding:10px 16px;margin:5px 0;display:flex;justify-content:space-between;align-items:center;">'
                 f'<div><span style="color:#f0f0f0;font-weight:500;">{html.escape(title)}</span>'
                 f'<span style="color:#666;font-size:0.85rem;"> — {html.escape(artist)}</span></div>'
                 f'<span style="color:#ff4444;font-size:1.1rem;">▶</span>'
-                f'</div></a>',
-                unsafe_allow_html=True,
+                f'</div></a>'
             )
- 
+            st.markdown(song_html, unsafe_allow_html=True)
+
+    # Rest of your code (expander, feedback buttons, etc.) remains the same
     with st.expander("See your mood scores"):
         e_bar = (energy + 16) / 32
         v_bar = (valence + 16) / 32

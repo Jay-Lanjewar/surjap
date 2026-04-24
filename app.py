@@ -412,3 +412,5 @@ else:
     if st.button("🔄 Try Again"):
         reset()
         st.rerun()
+        
+st.write("API KEY EXISTS:", bool(get_gemini_key()))
